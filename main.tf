@@ -16,7 +16,7 @@ module "hub_network" {
   source              = "./modules/vnet"
   resource_group_name = azurerm_resource_group.vnet.name
   location            = var.location
-  vnet_name           =  var.hub_vnet_name
+  vnet_name           = var.hub_vnet_name
   address_space       = ["10.0.0.0/22"]
   subnets = [
     {
@@ -54,14 +54,23 @@ module "kube_network" {
 }
 
 module "vnet_peering" {
-    source          = "./modules/vnet_peering"
-    resource_group  = azurerm_resource_group.vnet.name
-    vnet_1_name     = var.hub_vnet_name
-    vnet_1_id       = module.hub_network.vnet_id
-    vnet_2_name     = var.kube_vnet_name
-    vnet_2_id       = module.kube_network.vnet_id
-    peering_name_1_to_2 = "HubToSpoke1"
-    peering_name_2_to_1 = "Spoke1ToHub"
+  source              = "./modules/vnet_peering"
+  resource_group      = azurerm_resource_group.vnet.name
+  vnet_1_name         = var.hub_vnet_name
+  vnet_1_id           = module.hub_network.vnet_id
+  vnet_2_name         = var.kube_vnet_name
+  vnet_2_id           = module.kube_network.vnet_id
+  peering_name_1_to_2 = "HubToSpoke1"
+  peering_name_2_to_1 = "Spoke1ToHub"
+}
+
+module "firewall" {
+  source         = "./modules/firewall"
+  resource_group = azurerm_resource_group.vnet.name
+  location       = var.location
+  pip_name       = "azureFirewalls-ip"
+  fw_name        = "kubenetfw"
+  subnet_id      = module.hub_network.subnet_ids["AzureFirewallSubnet"]
 }
 
 

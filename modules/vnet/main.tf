@@ -6,7 +6,7 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "subnet" {
-  for_each = {for subnet in var.subnets : subnet.name => subnet.address_prefixes}
+  for_each = { for subnet in var.subnets : subnet.name => subnet.address_prefixes }
 
   name                 = each.key
   resource_group_name  = var.resource_group_name
