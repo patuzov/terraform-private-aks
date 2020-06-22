@@ -84,28 +84,43 @@ module "routtable" {
 }
 
 
-# resource "azurerm_kubernetes_cluster" "privateaks" {
-#   name                = "private-aks"
-#   location            = azurerm_resource_group.aksrg.location
-#   resource_group_name = azurerm_resource_group.aksrg.name
-#   dns_prefix          = "private-aks"
+resource "azurerm_kubernetes_cluster" "privateaks" {
+  name                    = "private-aks"
+  location                = var.location
+  kubernetes_version      = "1.16.9"
+  resource_group_name     = var.kube_resource_group_name
+  dns_prefix              = "private-aks"
+  private_cluster_enabled = true
 
-#   default_node_pool {
-#     name           = "default"
-#     node_count     = var.nodepool_nodes_count
-#     vm_size        = var.nodepool_vm_size
-#     vnet_subnet_id = azurerm_subnet.akssubnet.id
-#   }
+  default_node_pool {
+    name           = "default"
+    node_count     = var.nodepool_nodes_count
+    vm_size        = var.nodepool_vm_size
+    vnet_subnet_id = module.kube_network.subnet_ids["aks-2-subnet"]
+  }
 
-#   identity {
-#     type = "SystemAssigned"
-#   }
+  identity {
+    type = "SystemAssigned"
+  }
 
-#   network_profile {
-#     docker_bridge_cidr = var.network_docker_bridge_cidr
-#     dns_service_ip     = var.network_dns_service_ip
-#     network_plugin     = "azure"
-#     outbound_type      = "userDefinedRouting"
-#     service_cidr       = var.network_service_cidr
-#   }
-# }
+  network_profile {
+    docker_bridge_cidr = var.network_docker_bridge_cidr
+    dns_service_ip     = var.network_dns_service_ip
+    network_plugin     = "azure"
+    outbound_type      = "userDefinedRouting"
+    service_cidr       = var.network_service_cidr
+  }
+}
+
+resource "azurerm_role_assignment" "vmcontributor" {
+  role_definition_name = "Virtual Machine Contributor"
+  scope                = azurerm_resource_group.vnet.id
+  principal_id         = azurerm_kubernetes_cluster.privateaks.identity[0].principal_id
+}
+
+module "jumpbox" {
+  source         = "./modules/jumpbox"
+  location       = var.location
+  resource_group = var.kube_resource_group_name
+  subnet_id      = module.hub_network.subnet_ids["jumpbox-subnet"]
+}

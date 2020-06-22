@@ -23,24 +23,6 @@ variable "kube_resource_group_name" {
   default     = "nopublicipaks"
 }
 
-
-
-
-
-
-
-
-
-variable "resource_group_name" {
-  description = "The resource group name to be created"
-  default     = "private-aks"
-}
-
-variable "resource_group_location" {
-  description = "The resource group location"
-  default     = "West Europe"
-}
-
 variable "nodepool_nodes_count" {
   description = "Default nodepool nodes count"
   default     = 1
