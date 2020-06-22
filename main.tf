@@ -14,7 +14,7 @@ resource "azurerm_resource_group" "vnet" {
 
 module "hub_network" {
   source              = "./modules/vnet"
-  resource_group_name = azurerm_resource_group.vnet.name
+  resource_group_name = var.vnet_resource_group_name
   location            = var.location
   vnet_name           = var.hub_vnet_name
   address_space       = ["10.0.0.0/22"]
@@ -37,7 +37,7 @@ resource "azurerm_resource_group" "kube" {
 
 module "kube_network" {
   source              = "./modules/vnet"
-  resource_group_name = azurerm_resource_group.vnet.name
+  resource_group_name = var.vnet_resource_group_name
   location            = var.location
   vnet_name           = var.kube_vnet_name
   address_space       = ["10.0.4.0/22"]
@@ -55,7 +55,7 @@ module "kube_network" {
 
 module "vnet_peering" {
   source              = "./modules/vnet_peering"
-  resource_group      = azurerm_resource_group.vnet.name
+  resource_group      = var.vnet_resource_group_name
   vnet_1_name         = var.hub_vnet_name
   vnet_1_id           = module.hub_network.vnet_id
   vnet_2_name         = var.kube_vnet_name
@@ -66,13 +66,22 @@ module "vnet_peering" {
 
 module "firewall" {
   source         = "./modules/firewall"
-  resource_group = azurerm_resource_group.vnet.name
+  resource_group = var.vnet_resource_group_name
   location       = var.location
   pip_name       = "azureFirewalls-ip"
   fw_name        = "kubenetfw"
   subnet_id      = module.hub_network.subnet_ids["AzureFirewallSubnet"]
 }
 
+module "routtable" {
+  source             = "./modules/route_table"
+  resource_group     = var.vnet_resource_group_name
+  location           = var.location
+  rt_name            = "kubenetfw_fw_rt"
+  r_name             = "kubenetfw_fw_r"
+  firewal_private_ip = module.firewall.fw_private_ip
+  subnet_id          = module.kube_network.subnet_ids["aks-2-subnet"]
+}
 
 
 # resource "azurerm_kubernetes_cluster" "privateaks" {
