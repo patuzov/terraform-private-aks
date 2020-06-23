@@ -1,6 +1,6 @@
-output "tls_private_key" {
-  description = "Jumpbox VM SSH key"
-  value       = "${tls_private_key.jumpbox_ssh.private_key_pem}"
+output "jumpbox_ip" {
+  description = "Jumpbox VM IP"
+  value       = azurerm_linux_virtual_machine.jumpbox.public_ip_address
 }
 
 output "jumpbox_username" {
@@ -8,7 +8,7 @@ output "jumpbox_username" {
   value       = var.vm_user
 }
 
-output "jumpbox_ip" {
-  description = "Jumpbox VM IP"
-  value       = azurerm_public_ip.pip.ip_address
+output "jumpbox_password" {
+  description = "Jumpbox VM admin password"
+  value       = random_string.adminpassword.result
 }

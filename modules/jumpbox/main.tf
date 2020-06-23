@@ -41,36 +41,24 @@ resource "azurerm_network_interface_security_group_association" "sg_association"
   network_security_group_id = azurerm_network_security_group.vm_sg.id
 }
 
-
-resource "random_string" "storagesuffix" {
+resource "random_string" "adminpassword" {
   keepers = {
     resource_group = var.resource_group
   }
 
-  length  = 13
-  upper   = false
-  special = false
-}
-
-resource "azurerm_storage_account" "vm_storage" {
-  name                     = "jumpstorage${random_string.storagesuffix.result}"
-  resource_group_name      = var.resource_group
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "tls_private_key" "jumpbox_ssh" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+  length = 10
 }
 
 resource "azurerm_linux_virtual_machine" "jumpbox" {
-  name                  = "jumpboxvm"
-  location              = var.location
-  resource_group_name   = var.resource_group
-  network_interface_ids = [azurerm_network_interface.vm_nic.id]
-  size                  = "Standard_DS1_v2"
+  name                            = "jumpboxvm"
+  location                        = var.location
+  resource_group_name             = var.resource_group
+  network_interface_ids           = [azurerm_network_interface.vm_nic.id]
+  size                            = "Standard_DS1_v2"
+  computer_name                   = "jumpboxvm"
+  admin_username                  = var.vm_user
+  admin_password                  = random_string.adminpassword.result
+  disable_password_authentication = false
 
   os_disk {
     name                 = "jumpboxOsDisk"
@@ -85,16 +73,21 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     version   = "latest"
   }
 
-  computer_name                   = "jumpboxvm"
-  admin_username                  = var.vm_user
-  disable_password_authentication = true
+  provisioner "remote-exec" {
+    connection {
+      host     = self.public_ip_address
+      type     = "ssh"
+      user     = var.vm_user
+      password = random_string.adminpassword.result
+    }
 
-  admin_ssh_key {
-    username   = var.vm_user
-    public_key = tls_private_key.jumpbox_ssh.public_key_openssh
-  }
-
-  boot_diagnostics {
-    storage_account_uri = azurerm_storage_account.vm_storage.primary_blob_endpoint
+    inline = [
+      "sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2",
+      "curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
+      "echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/apt/sources.list.d/kubernetes.list",
+      "sudo apt-get update",
+      "sudo apt-get install -y kubectl",
+      "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+    ]
   }
 }

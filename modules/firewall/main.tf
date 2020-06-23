@@ -141,3 +141,59 @@ resource "azurerm_firewall_application_rule_collection" "osupdates" {
     }
   }
 }
+
+resource "azurerm_firewall_application_rule_collection" "publicimages" {
+  name                = "publicimages"
+  azure_firewall_name = azurerm_firewall.fw.name
+  resource_group_name = var.resource_group
+  priority            = 103
+  action              = "Allow"
+
+  rule {
+    name             = "allow network"
+    source_addresses = ["*"]
+
+    target_fqdns = [
+      "auth.docker.io",
+      "registry-1.docker.io",
+      "production.cloudflare.docker.com"
+    ]
+
+    protocol {
+      port = "80"
+      type = "Http"
+    }
+
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+}
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "test"
+  azure_firewall_name = azurerm_firewall.fw.name
+  resource_group_name = var.resource_group
+  priority            = 104
+  action              = "Allow"
+
+  rule {
+    name             = "allow network"
+    source_addresses = ["*"]
+
+    target_fqdns = [
+      "google.com"
+    ]
+
+    protocol {
+      port = "80"
+      type = "Http"
+    }
+
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+}

@@ -8,7 +8,11 @@ output "jumpbox_username" {
   value       = module.jumpbox.jumpbox_username
 }
 
-output "jumpbox_ssh" {
-  description = "Jumpbox SSH key"
-  value       = module.jumpbox.tls_private_key
+output "jumpbox_password" {
+  description = "Jumpbox Admin Passowrd"
+  value       = module.jumpbox.jumpbox_password
+}
+
+output "ssh_command" {
+  value = "ssh ${module.jumpbox.jumpbox_username}@${module.jumpbox.jumpbox_ip}"
 }
