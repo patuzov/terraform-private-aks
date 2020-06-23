@@ -20,7 +20,7 @@ variable address_space {
 
 variable subnets {
   description = "Subnets configuration"
-  type = set(object({
+  type = list(object({
     name             = string
     address_prefixes = list(string)
   }))

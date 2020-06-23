@@ -38,17 +38,13 @@ module "hub_network" {
 
 module "kube_network" {
   source              = "./modules/vnet"
-  resource_group_name = var.vnet_resource_group_name
+  resource_group_name = var.kube_resource_group_name
   location            = var.location
   vnet_name           = var.kube_vnet_name
   address_space       = ["10.0.4.0/22"]
   subnets = [
     {
-      name : "ing-1-subnet"
-      address_prefixes : ["10.0.4.0/24"]
-    },
-    {
-      name : "aks-2-subnet"
+      name : "aks-subnet"
       address_prefixes : ["10.0.5.0/24"]
     }
   ]
@@ -56,11 +52,12 @@ module "kube_network" {
 
 module "vnet_peering" {
   source              = "./modules/vnet_peering"
-  resource_group      = var.vnet_resource_group_name
   vnet_1_name         = var.hub_vnet_name
   vnet_1_id           = module.hub_network.vnet_id
+  vnet_1_rg           = var.vnet_resource_group_name
   vnet_2_name         = var.kube_vnet_name
   vnet_2_id           = module.kube_network.vnet_id
+  vnet_2_rg           = var.kube_resource_group_name
   peering_name_1_to_2 = "HubToSpoke1"
   peering_name_2_to_1 = "Spoke1ToHub"
 }
@@ -81,7 +78,7 @@ module "routtable" {
   rt_name            = "kubenetfw_fw_rt"
   r_name             = "kubenetfw_fw_r"
   firewal_private_ip = module.firewall.fw_private_ip
-  subnet_id          = module.kube_network.subnet_ids["aks-2-subnet"]
+  subnet_id          = module.kube_network.subnet_ids["aks-subnet"]
 }
 
 
@@ -97,7 +94,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
     name           = "default"
     node_count     = var.nodepool_nodes_count
     vm_size        = var.nodepool_vm_size
-    vnet_subnet_id = module.kube_network.subnet_ids["aks-2-subnet"]
+    vnet_subnet_id = module.kube_network.subnet_ids["aks-subnet"]
   }
 
   identity {
