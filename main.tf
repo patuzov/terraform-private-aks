@@ -12,6 +12,11 @@ resource "azurerm_resource_group" "vnet" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "kube" {
+  name     = var.kube_resource_group_name
+  location = var.location
+}
+
 module "hub_network" {
   source              = "./modules/vnet"
   resource_group_name = var.vnet_resource_group_name
@@ -30,10 +35,6 @@ module "hub_network" {
   ]
 }
 
-resource "azurerm_resource_group" "kube" {
-  name     = var.kube_resource_group_name
-  location = var.location
-}
 
 module "kube_network" {
   source              = "./modules/vnet"
@@ -110,6 +111,8 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
     outbound_type      = "userDefinedRouting"
     service_cidr       = var.network_service_cidr
   }
+
+  depends_on = [module.routtable]
 }
 
 resource "azurerm_role_assignment" "vmcontributor" {
