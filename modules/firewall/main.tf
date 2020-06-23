@@ -183,7 +183,7 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     source_addresses = ["*"]
 
     target_fqdns = [
-      "google.com"
+      "*.bing.com"
     ]
 
     protocol {
