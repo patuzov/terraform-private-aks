@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "kube" {
 
 module "hub_network" {
   source              = "./modules/vnet"
-  resource_group_name = var.vnet_resource_group_name
+  resource_group_name = azurerm_resource_group.vnet.name
   location            = var.location
   vnet_name           = var.hub_vnet_name
   address_space       = ["10.0.0.0/22"]
@@ -35,10 +35,9 @@ module "hub_network" {
   ]
 }
 
-
 module "kube_network" {
   source              = "./modules/vnet"
-  resource_group_name = var.kube_resource_group_name
+  resource_group_name = azurerm_resource_group.kube.name
   location            = var.location
   vnet_name           = var.kube_vnet_name
   address_space       = ["10.0.4.0/22"]
@@ -54,17 +53,17 @@ module "vnet_peering" {
   source              = "./modules/vnet_peering"
   vnet_1_name         = var.hub_vnet_name
   vnet_1_id           = module.hub_network.vnet_id
-  vnet_1_rg           = var.vnet_resource_group_name
+  vnet_1_rg           = azurerm_resource_group.vnet.name
   vnet_2_name         = var.kube_vnet_name
   vnet_2_id           = module.kube_network.vnet_id
-  vnet_2_rg           = var.kube_resource_group_name
+  vnet_2_rg           = azurerm_resource_group.kube.name
   peering_name_1_to_2 = "HubToSpoke1"
   peering_name_2_to_1 = "Spoke1ToHub"
 }
 
 module "firewall" {
   source         = "./modules/firewall"
-  resource_group = var.vnet_resource_group_name
+  resource_group = azurerm_resource_group.vnet.name
   location       = var.location
   pip_name       = "azureFirewalls-ip"
   fw_name        = "kubenetfw"
@@ -73,7 +72,7 @@ module "firewall" {
 
 module "routtable" {
   source             = "./modules/route_table"
-  resource_group     = var.vnet_resource_group_name
+  resource_group     = azurerm_resource_group.vnet.name
   location           = var.location
   rt_name            = "kubenetfw_fw_rt"
   r_name             = "kubenetfw_fw_r"
@@ -81,12 +80,11 @@ module "routtable" {
   subnet_id          = module.kube_network.subnet_ids["aks-subnet"]
 }
 
-
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "private-aks"
   location                = var.location
   kubernetes_version      = "1.16.9"
-  resource_group_name     = var.kube_resource_group_name
+  resource_group_name     = azurerm_resource_group.kube.name
   dns_prefix              = "private-aks"
   private_cluster_enabled = true
 
@@ -119,8 +117,11 @@ resource "azurerm_role_assignment" "vmcontributor" {
 }
 
 module "jumpbox" {
-  source         = "./modules/jumpbox"
-  location       = var.location
-  resource_group = var.kube_resource_group_name
-  subnet_id      = module.hub_network.subnet_ids["jumpbox-subnet"]
+  source                  = "./modules/jumpbox"
+  location                = var.location
+  resource_group          = azurerm_resource_group.kube.name
+  vnet_id                 = module.hub_network.vnet_id
+  subnet_id               = module.hub_network.subnet_ids["jumpbox-subnet"]
+  dns_zone_name           = join(".", slice(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn), 1, length(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn))))
+  dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
 }

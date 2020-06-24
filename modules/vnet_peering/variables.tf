@@ -10,7 +10,7 @@ variable vnet_1_id {
 
 variable vnet_1_rg {
   description = "VNET 1 resource group"
-  type = string
+  type        = string
 }
 
 variable vnet_2_name {
@@ -25,7 +25,7 @@ variable vnet_2_id {
 
 variable vnet_2_rg {
   description = "VNET 2 resource group"
-  type = string
+  type        = string
 }
 
 variable peering_name_1_to_2 {
