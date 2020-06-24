@@ -119,7 +119,7 @@ resource "azurerm_role_assignment" "vmcontributor" {
 module "jumpbox" {
   source                  = "./modules/jumpbox"
   location                = var.location
-  resource_group          = azurerm_resource_group.kube.name
+  resource_group          = azurerm_resource_group.vnet.name
   vnet_id                 = module.hub_network.vnet_id
   subnet_id               = module.hub_network.subnet_ids["jumpbox-subnet"]
   dns_zone_name           = join(".", slice(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn), 1, length(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn))))
