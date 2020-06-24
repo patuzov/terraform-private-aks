@@ -10,5 +10,5 @@ output "jumpbox_username" {
 
 output "jumpbox_password" {
   description = "Jumpbox VM admin password"
-  value       = random_string.adminpassword.result
+  value       = random_password.adminpassword.result
 }
