@@ -70,7 +70,7 @@ module "firewall" {
   subnet_id      = module.hub_network.subnet_ids["AzureFirewallSubnet"]
 }
 
-module "routtable" {
+module "routetable" {
   source             = "./modules/route_table"
   resource_group     = azurerm_resource_group.vnet.name
   location           = var.location
@@ -107,7 +107,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
     service_cidr       = var.network_service_cidr
   }
 
-  depends_on = [module.routtable]
+  depends_on = [module.routetable]
 }
 
 resource "azurerm_role_assignment" "vmcontributor" {
