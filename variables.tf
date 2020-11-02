@@ -18,6 +18,11 @@ variable "kube_vnet_name" {
   default     = "spoke1-kubevnet"
 }
 
+variable "kube_version" {
+  description = "AKS Kubernetes version"
+  default     = "1.18.8"
+}
+
 variable "kube_resource_group_name" {
   description = "The resource group name to be created"
   default     = "nopublicipaks"

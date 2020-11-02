@@ -83,7 +83,7 @@ module "routetable" {
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "private-aks"
   location                = var.location
-  kubernetes_version      = "1.16.9"
+  kubernetes_version      = var.kube_version
   resource_group_name     = azurerm_resource_group.kube.name
   dns_prefix              = "private-aks"
   private_cluster_enabled = true
@@ -110,9 +110,9 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   depends_on = [module.routetable]
 }
 
-resource "azurerm_role_assignment" "vmcontributor" {
-  role_definition_name = "Virtual Machine Contributor"
-  scope                = azurerm_resource_group.vnet.id
+resource "azurerm_role_assignment" "netcontributor" {
+  role_definition_name = "Network Contributor"
+  scope                = module.kube_network.subnet_ids["aks-subnet"]
   principal_id         = azurerm_kubernetes_cluster.privateaks.identity[0].principal_id
 }
 
