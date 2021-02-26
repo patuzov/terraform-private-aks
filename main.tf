@@ -80,10 +80,15 @@ module "routetable" {
   subnet_id          = module.kube_network.subnet_ids["aks-subnet"]
 }
 
+data "azurerm_kubernetes_service_versions" "current" {
+  location       = var.location
+  version_prefix = var.kube_version_prefix
+}
+
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "private-aks"
   location                = var.location
-  kubernetes_version      = var.kube_version
+  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
   resource_group_name     = azurerm_resource_group.kube.name
   dns_prefix              = "private-aks"
   private_cluster_enabled = true

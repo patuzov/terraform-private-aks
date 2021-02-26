@@ -18,9 +18,9 @@ variable "kube_vnet_name" {
   default     = "spoke1-kubevnet"
 }
 
-variable "kube_version" {
-  description = "AKS Kubernetes version"
-  default     = "1.18.8"
+variable "kube_version_prefix" {
+  description = "AKS Kubernetes version prefix. Formatted '[Major].[Minor]' like '1.18'. Patch version part (as in '[Major].[Minor].[Patch]') will be set to latest automatically."
+  default     = "1.18"
 }
 
 variable "kube_resource_group_name" {
