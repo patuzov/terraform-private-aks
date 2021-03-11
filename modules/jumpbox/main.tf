@@ -1,3 +1,8 @@
+module myip {
+  source  = "4ops/myip/http"
+  version = "1.0.0"
+}
+
 resource "azurerm_public_ip" "pip" {
   name                = "vm-pip"
   location            = var.location
@@ -18,7 +23,7 @@ resource "azurerm_network_security_group" "vm_sg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
+    source_address_prefix      = module.myip.address
     destination_address_prefix = "*"
   }
 }
