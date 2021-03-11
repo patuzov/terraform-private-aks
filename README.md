@@ -9,3 +9,6 @@ After you configure authentication with Azure, just init and apply (no inputs ar
 `terraform init`
 
 `terraform apply`
+
+# Connecting to the jumpbox VM
+During deployment, your IP where you deployed from is whitelisted in the `SSH` rule so that you (and only you) can SSH into the jumpbox VM.  In the future, if you're not able to ssh into the jumpbox VM, then check the `SSH` rule in your network security group to make sure your current IP address is whitelisted.
