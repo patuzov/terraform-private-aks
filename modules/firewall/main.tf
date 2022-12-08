@@ -20,6 +20,8 @@ resource "azurerm_firewall" "fw" {
   }
 }
 
+# Rules for a private cluster (non-gov/non-21vnet/linux based)
+
 resource "azurerm_firewall_network_rule_collection" "time" {
   name                = "time"
   azure_firewall_name = azurerm_firewall.fw.name
@@ -53,31 +55,8 @@ resource "azurerm_firewall_network_rule_collection" "dns" {
     protocols             = ["UDP"]
   }
 }
-
-resource "azurerm_firewall_network_rule_collection" "servicetags" {
-  name                = "servicetags"
-  azure_firewall_name = azurerm_firewall.fw.name
-  resource_group_name = var.resource_group
-  priority            = 110
-  action              = "Allow"
-
-  rule {
-    description       = "allow service tags"
-    name              = "allow service tags"
-    source_addresses  = ["*"]
-    destination_ports = ["*"]
-    protocols         = ["Any"]
-
-    destination_addresses = [
-      "AzureContainerRegistry",
-      "MicrosoftContainerRegistry",
-      "AzureActiveDirectory"
-    ]
-  }
-}
-
 resource "azurerm_firewall_application_rule_collection" "aksbasics" {
-  name                = "aksbasics"
+  name                = "azure_global_fqdn"
   azure_firewall_name = azurerm_firewall.fw.name
   resource_group_name = var.resource_group
   priority            = 101
@@ -88,24 +67,12 @@ resource "azurerm_firewall_application_rule_collection" "aksbasics" {
     source_addresses = ["*"]
 
     target_fqdns = [
-      "*.cdn.mscr.io",
       "mcr.microsoft.com",
-      "vault.azure.net",
       "*.data.mcr.microsoft.com",
       "management.azure.com",
       "login.microsoftonline.com",
-      "acs-mirror.azureedge.net",
-      "dc.services.visualstudio.com",
-      "*.opinsights.azure.com",
-      "*.ods.opinsights.azure.com",
-      "*.oms.opinsights.azure.com",
-      "*.microsoftonline.com",
-      "*.monitoring.azure.com",
-      "data.policy.core.windows.net",
-      "store.policy.core.windows.net",
-      "*.dp.kubernetesconfiguration.azure.com"
-
-
+      "packages.microsoft.com",
+      "acs-mirror.azureedge.net"
     ]
 
     protocol {
@@ -127,13 +94,9 @@ resource "azurerm_firewall_application_rule_collection" "osupdates" {
     source_addresses = ["*"]
 
     target_fqdns = [
-      "download.opensuse.org",
       "security.ubuntu.com",
       "changelogs.ubuntu.com",
-      "azure.archive.ubuntu.com",
-      "ntp.ubuntu.com",
-      "packages.microsoft.com",
-      "snapcraft.io"
+      "azure.archive.ubuntu.com"
     ]
 
     protocol {
@@ -148,28 +111,21 @@ resource "azurerm_firewall_application_rule_collection" "osupdates" {
   }
 }
 
-resource "azurerm_firewall_application_rule_collection" "publicimages" {
-  name                = "publicimages"
+resource "azurerm_firewall_application_rule_collection" "Defender" {
+  action = "Allow"
   azure_firewall_name = azurerm_firewall.fw.name
+  name = "Defender"
+  priority = 103
   resource_group_name = var.resource_group
-  priority            = 103
-  action              = "Allow"
-
-  rule {
+rule {
     name             = "allow network"
     source_addresses = ["*"]
 
     target_fqdns = [
-      "auth.docker.io",
-      "registry-1.docker.io",
-      "production.cloudflare.docker.com"
+      "login.microsoftonline.com",
+      "*.ods.opinsights.azure.com",
+      "*.oms.opinsights.azure.com"
     ]
-
-    protocol {
-      port = "80"
-      type = "Http"
-    }
-
     protocol {
       port = "443"
       type = "Https"
@@ -177,29 +133,90 @@ resource "azurerm_firewall_application_rule_collection" "publicimages" {
   }
 }
 
-resource "azurerm_firewall_application_rule_collection" "test" {
-  name                = "test"
+resource "azurerm_firewall_application_rule_collection" "CSI" {
+  action = "Allow"
   azure_firewall_name = azurerm_firewall.fw.name
+  name = "CSI"
+  priority = 104
   resource_group_name = var.resource_group
-  priority            = 104
-  action              = "Allow"
-
-  rule {
+rule {
     name             = "allow network"
     source_addresses = ["*"]
 
     target_fqdns = [
-      "*.bing.com"
+      "vault.azure.net"
     ]
-
-    protocol {
-      port = "80"
-      type = "Http"
-    }
-
     protocol {
       port = "443"
       type = "Https"
     }
   }
 }
+
+resource "azurerm_firewall_application_rule_collection" "Azure_Monitor" {
+  action = "Allow"
+  azure_firewall_name = azurerm_firewall.fw.name
+  name = "Azure_Monitor"
+  priority = 105
+  resource_group_name = var.resource_group
+rule {
+    name             = "allow network"
+    source_addresses = ["*"]
+
+    target_fqdns = [
+      "dc.services.visualstudio.com",
+      "*.ods.opinsights.azure.com",
+      "*.oms.opinsights.azure.com",
+      "*.monitoring.azure.com"
+    ]
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+}
+
+resource "azurerm_firewall_application_rule_collection" "Azure_Policy" {
+  action = "Allow"
+  azure_firewall_name = azurerm_firewall.fw.name
+  name = "Azure_Policy"
+  priority = 106
+  resource_group_name = var.resource_group
+rule {
+    name             = "allow network"
+    source_addresses = ["*"]
+
+    target_fqdns = [
+      "data.policy.core.windows.net",
+      "store.policy.core.windows.net",
+      "dc.services.visualstudio.com"
+    ]
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+}
+
+resource "azurerm_firewall_application_rule_collection" "Cluster_Extensions" {
+  action = "Allow"
+  azure_firewall_name = azurerm_firewall.fw.name
+  name = "Cluster_Extensions"
+  priority = 107
+  resource_group_name = var.resource_group
+rule {
+    name             = "allow network"
+    source_addresses = ["*"]
+
+    target_fqdns = [
+      "*.dp.kubernetesconfiguration.azure.com",
+      "mcr.microsoft.com",
+      "dc.services.visualstudio.com"
+    ]
+    protocol {
+      port = "443"
+      type = "Https"
+    }
+  }
+}
+

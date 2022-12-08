@@ -8,7 +8,11 @@ terraform {
   }
 }
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 
@@ -92,13 +96,13 @@ data "azurerm_kubernetes_service_versions" "current" {
 }
 
 resource "azurerm_kubernetes_cluster" "privateaks" {
-  name                      = "private-aks"
-  location                  = var.location
-  kubernetes_version        = data.azurerm_kubernetes_service_versions.current.latest_version
-  resource_group_name       = azurerm_resource_group.kube.name
-  azure_policy_enabled      = true
-  dns_prefix                = "private-aks"
-  private_cluster_enabled   = true
+  name                    = "private-aks"
+  location                = var.location
+  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
+  resource_group_name     = azurerm_resource_group.kube.name
+  azure_policy_enabled    = true
+  dns_prefix              = "private-aks"
+  private_cluster_enabled = true
 
   default_node_pool {
     name           = "default"
