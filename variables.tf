@@ -1,6 +1,6 @@
 variable "location" {
   description = "The resource group location"
-  default     = "West Europe"
+  default     = "East US"
 }
 
 variable "vnet_resource_group_name" {
@@ -20,7 +20,7 @@ variable "kube_vnet_name" {
 
 variable "kube_version_prefix" {
   description = "AKS Kubernetes version prefix. Formatted '[Major].[Minor]' like '1.18'. Patch version part (as in '[Major].[Minor].[Patch]') will be set to latest automatically."
-  default     = "1.18"
+  default     = "1.24.6"
 }
 
 variable "kube_resource_group_name" {

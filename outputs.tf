@@ -4,5 +4,5 @@ output "ssh_command" {
 
 output "jumpbox_password" {
   description = "Jumpbox Admin Passowrd"
-  value       = module.jumpbox.jumpbox_password
+  value       = nonsensitive(module.jumpbox.jumpbox_password)
 }

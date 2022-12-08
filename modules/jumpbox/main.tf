@@ -57,7 +57,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   location                        = var.location
   resource_group_name             = var.resource_group
   network_interface_ids           = [azurerm_network_interface.vm_nic.id]
-  size                            = "Standard_DS1_v2"
+  size                            = "Standard_DS2_v2"
   computer_name                   = "jumpboxvm"
   admin_username                  = var.vm_user
   admin_password                  = random_password.adminpassword.result
@@ -72,7 +72,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    sku       = "18_04-lts-gen2"
     version   = "latest"
   }
 
