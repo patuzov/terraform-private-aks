@@ -1,11 +1,17 @@
 terraform {
-  required_version = ">= 0.12"
+  required_version = "<= 1.26"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.34.0"
+    }
+  }
 }
-
 provider "azurerm" {
-  version = "~>2.5" //outbound_type https://github.com/terraform-providers/terraform-provider-azurerm/blob/v2.5.0/CHANGELOG.md
   features {}
 }
+
+
 
 resource "azurerm_resource_group" "vnet" {
   name     = var.vnet_resource_group_name
@@ -86,12 +92,13 @@ data "azurerm_kubernetes_service_versions" "current" {
 }
 
 resource "azurerm_kubernetes_cluster" "privateaks" {
-  name                    = "private-aks"
-  location                = var.location
-  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
-  resource_group_name     = azurerm_resource_group.kube.name
-  dns_prefix              = "private-aks"
-  private_cluster_enabled = true
+  name                      = "private-aks"
+  location                  = var.location
+  kubernetes_version        = data.azurerm_kubernetes_service_versions.current.latest_version
+  resource_group_name       = azurerm_resource_group.kube.name
+  azure_policy_enabled      = true
+  dns_prefix                = "private-aks"
+  private_cluster_enabled   = true
 
   default_node_pool {
     name           = "default"
